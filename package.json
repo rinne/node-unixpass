@@ -1,0 +1,32 @@
+{
+    "name": "unixpass",
+    "version": "1.0.0",
+    "description": "Native implementation of Unix compatible MD5/SHA256/SHA512 password hashing.",
+    "main": "unixpass.js",
+    "scripts": {
+        "test": "node ./test/unixpass-test.js"
+    },
+    "engines": {
+        "node": ">=4.0.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/rinne/node-unixpass.git"
+    },
+    "keywords": [
+        "timer",
+        "time",
+        "measurement",
+        "debugging"
+    ],
+    "author": {
+        "name": "Timo J. Rinne",
+        "email": "tri@iki.fi",
+        "url": "https://github.com/rinne/"
+    },
+    "license": "GPL-2.0",
+    "bugs": {
+        "url": "https://github.com/rinne/node-unixpass/issues"
+    },
+    "homepage": "https://github.com/rinne/node-unixpass#readme"
+}
