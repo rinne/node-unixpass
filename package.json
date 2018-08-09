@@ -1,6 +1,6 @@
 {
     "name": "unixpass",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "Native implementation of Unix compatible MD5/SHA256/SHA512 password hashing.",
     "main": "unixpass.js",
     "scripts": {
