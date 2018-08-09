@@ -26,7 +26,7 @@ up.crypt('mypassword', '$5$saltsaltmoresalt');
 up.hash('mypassword');
 
 // Returns true if password matches hash, false otherwise
-up.hash('mypassword', '$1$saltsalt$dfhjlwheucnsdicbnwuibnwicb');
+up.check('mypassword', '$1$saltsalt$dfhjlwheucnsdicbnwuibnwicb');
 
 ```
 
