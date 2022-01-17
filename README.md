@@ -3,10 +3,10 @@ In A Nutshell
 
 This is a native javascript implementation of Unix/Linux compatible
 password hashing. The currently implemented variants include
-legacy-DES, MD5 ($1$), SHA256 ($5$), and SHA512 ($6$).
+legacy-DES (13 characters [./0-9A-Za-z]), extended-DES (underscore
+followed by 19 characters) MD5 ($1$), SHA256 ($5$), and SHA512 ($6$).
 
 The ones missing are
-  - Legacy extended DES encryption (_ + 24 bit rounds + 24 bit salt ...)
   - Blowfish hashing ($2$, $2a$, $2b$, $2x$, $2y$)
 
 Should some brave soul implement any or all of above, they will be accepted.
