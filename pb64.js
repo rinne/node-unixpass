@@ -11,7 +11,7 @@ const pb64 = function(b0, b1, b2, rl) {
 };
 
 const pb64d = function(s) {
-	var a, b, c, d, rv = new Buffer(0), tb;
+	var a, b, c, d, rv = Buffer.alloc(0), tb;
 	if (! (typeof(s) === 'string')) {
 		return false;
 	}
@@ -24,7 +24,7 @@ const pb64d = function(s) {
 				return false;
 			}
 			s = '';
-			tb = new Buffer([ (a << 2) | (b >> 4) ]);
+			tb = Buffer.from([ (a << 2) | (b >> 4) ]);
 			break;
 		case 3:
 			a = pb64voc.indexOf(s.substr(0, 1));
@@ -34,7 +34,7 @@ const pb64d = function(s) {
 				return false;
 			}
 			s = '';
-			tb = new Buffer([ (a << 2) | (b >> 4), ((b & 0xf) << 4) | (c >> 2) ]);
+			tb = Buffer.from([ (a << 2) | (b >> 4), ((b & 0xf) << 4) | (c >> 2) ]);
 			break;
 		default:
 			a = pb64voc.indexOf(s.substr(0, 1));
@@ -45,7 +45,7 @@ const pb64d = function(s) {
 				return false;
 			}
 			s = s.substr(4);
-			tb = new Buffer([ (a << 2) | (b >> 4), ((b & 0xf) << 4) | (c >> 2), ((c & 0x3) << 6) | d ]);
+			tb = Buffer.from([ (a << 2) | (b >> 4), ((b & 0xf) << 4) | (c >> 2), ((c & 0x3) << 6) | d ]);
 			break;
 		}
 		rv = Buffer.concat([ rv, tb ]);

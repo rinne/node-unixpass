@@ -104,7 +104,7 @@ const hashCrypt = function(password, salt, alg, rounds, roundsExplicit) {
 		}
 		cr = c.digest();
 		c = undefined;
-		p = new Buffer(0);
+		p = Buffer.alloc(0);
 		while (p.length < password.length) {
 			p = Buffer.concat([ p, cr ]);
 		}
@@ -118,7 +118,7 @@ const hashCrypt = function(password, salt, alg, rounds, roundsExplicit) {
 		}
 		cr = c.digest();
 		c = undefined;
-		s = new Buffer(0);
+		s = Buffer.alloc(0);
 		while (s.length < salt.length) {
 			s = Buffer.concat([ s, cr ]);
 		}
@@ -240,7 +240,7 @@ const crypt = function(password, salt) {
 	m = salt.match(/^_([\.\/0-9A-Za-z]{4})([\.\/0-9A-Za-z]{4})([\.\/0-9A-Za-z]{11})?$/);
 	if (m) {
 		(function() {
-			var i, pb = new Buffer(password.length)
+			var i, pb = Buffer.alloc(password.length)
 			for (i = 0; i < password.length; i++) {
 				pb[i] = password.charCodeAt(i) & 0x7f;
 			}
