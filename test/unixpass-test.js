@@ -1,6 +1,7 @@
 'use strict';
 
 const up = require('../unixpass.js');
+const crypto = require('crypto');
 
 const test = function() {
 	const t = [
@@ -90,7 +91,7 @@ const test = function() {
 		  s: 'tr',
 		  r: 'trthmtW0sP6Ik' },
 	];
-	var n = 0, ok = 0;
+	var n = 0, ok = 0, i;
 
 	t.forEach(function(t) {
 		var r = up.crypt(t.p, t.s);
@@ -105,10 +106,16 @@ const test = function() {
 		}
 	});
 	if (ok != n) {
-		console.log(ok.toString() + '/' + n.toString() + " tests OK. " + (n - ok).toString() + " tests failed.");
+		console.log(ok.toString() +
+					'/' +
+					n.toString() +
+					" password tests OK. " +
+					(n - ok).toString() +
+					" tests failed.");
 		return false;
 	}
-	console.log("All " + n.toString() + " tests OK.");
+	console.log("All " + n.toString() + " password tests OK.");
+
 	return true;
 };
 

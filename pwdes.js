@@ -1,5 +1,7 @@
 'use strict';
 
+const pb64 = require('./pb64.js');
+
 // This is an implementation of the original Unix password
 // encryption using DES. S-boxes and permutation tables are
 // snatched from the file /usr/src/libc/gen/crypt.c found
@@ -100,20 +102,6 @@ const P	 = [ 16, 7, 20, 21,
 			 19, 13, 30, 6,
 			 22, 11, 4, 25 ];
 
-const voc = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-
-function charToNum(c) {
-	 let r = voc.indexOf(c);
-	 return (r >= 0) ? r : undefined;
-}
-
-function numToChar(n) {
-	 if (! (Number.isSafeInteger(n) && (n >= 0) && (n < voc.length))) {
-	    return undefined;
-	 }
-	 return voc.charAt(n);
-}
-
 function encrypt(block,  key)
 {
 	let L, R;
@@ -161,11 +149,11 @@ function encrypt(block,  key)
 	return ret;
 }
 
-function mkKey(pw) {
+function mkKey(k) {
 	let block = Buffer.alloc(64);
-	for (let i = 0; i < pw.length; i++) {
+	for (let i = 0; (i < 8) && (i < k.length); i++) {
 		for (let j = 0; j < 7; j++) {
-			block[i * 8 + j] = (pw[i] >> (6 - j)) & 1;
+			block[(i * 8) + j] = (k[i] >> (7 - j)) & 1;
 		}
 	}
 	let C = Buffer.alloc(28);
@@ -187,36 +175,95 @@ function mkKey(pw) {
 	return {ks: ks, e: e};
 }
 
-function setKeySalt(key, sa) {
+function setKeySalt(key, sb) {
 	let e = Array.from(E);
-	for (let i = 0; i < 2; i++) {
+	for (let i = 0; i < sb.length; i++) {
 		for (let j = 0; j < 6; j++) {
-			if ((sa[i] >> j) & 1) {
-				let t = e[6 * i + j];
-				e[6 * i + j] = e[6 * i + j + 24];
-				e[6 * i + j + 24] = t;
+			if ((sb[i] >> j) & 1) {
+				let t = e[(6 * i) + j];
+				e[(6 * i) + j] = e[(6 * i) + j + 24];
+				e[(6 * i) + j + 24] = t;
 			}
 		}
 	}
 	return {ks: key.ks, e: e};
 }
 
+function byteBufToBitBuf(b) {
+	var r = Buffer.alloc(b.length << 3);
+	for (let i = 0; i < b.length; i++) {
+		for (let j = 0; j < 8; j++) {
+			r[(i * 8) + j] = (b[i] >> (7 - j)) & 1;
+		}
+	}
+	return r;
+}
+
+function bitBufToByteBuf(b) {
+	var r = Buffer.alloc(b.length >> 3);
+	for (let i = 0; i < r.length; i++) {
+		for (let j = 0; j < 8; j++) {
+			r[i] = (r[i] << 1) | b[(i * 8) + j];
+		}
+	}
+	return r;
+}
+
 function crypt(password, salt) {
+	var sb, rounds, ext = false;
 	if (typeof(password) !== 'string') {
 		throw new TypeError('Password not a string');
 	}
 	if (typeof(salt) !== 'string') {
 		throw new TypeError('Salt not a string');
 	}
-	if (! salt.match(/^[./0-9A-Za-z]{2}/)) {
+	if (salt.match(/^[./0-9A-Za-z]{2}/)) {
+		ext = false;
+		rounds = 25;
+		sb = Buffer.from([ pb64.c2n(salt.charAt(0)),
+						   pb64.c2n(salt.charAt(1)) ]);
+	} else if (salt.match(/^_[./0-9A-Za-z]{8}/)) {
+		ext = true;
+		rounds = ((pb64.c2n(salt.charAt(1))) |
+				  (pb64.c2n(salt.charAt(2)) << 6) |
+				  (pb64.c2n(salt.charAt(3)) << 12) |
+				  (pb64.c2n(salt.charAt(4)) << 18));
+		sb = Buffer.from([ pb64.c2n(salt.charAt(5)),
+						   pb64.c2n(salt.charAt(6)),
+						   pb64.c2n(salt.charAt(7)),
+						   pb64.c2n(salt.charAt(8)) ]);
+	} else {
 		throw new RangeError('Malformed salt');
 	}
 	let key;
-	key = mkKey(Buffer.from(password, 'utf8').slice(0, 8))
-	key = setKeySalt(key, Buffer.from([ charToNum(salt.charAt(0)),
-										charToNum(salt.charAt(1)) ]));
+	let pb = (ext ?
+			  Buffer.from(password, 'utf8') :
+			  Buffer.from(password, 'utf8').slice(0, 8));
+	for (let i = 0; i < pb.length; i++) {
+		pb[i] <<= 1;
+	}
+	if (pb.length % 8) {
+		pb = Buffer.concat([ pb, Buffer.alloc(8 - (pb.length % 8)) ]);
+	}
+	if (ext) {
+		let kb = Buffer.alloc(8);
+		for (let i = 0; i < pb.length; i += 8) {
+			if (i > 0) {
+				kb = byteBufToBitBuf(kb);
+				kb = encrypt(kb, key);
+				kb = bitBufToByteBuf(kb)
+			}
+			for (let j = 0; j < 8; j++) {
+				kb[j] ^= pb[i + j];
+			}
+			key = mkKey(kb);
+		}
+	} else {
+		key = mkKey(pb);
+	}
+	key = setKeySalt(key, sb);
 	let block = Buffer.alloc(64);
-	for (let i = 0; i < 25; i++) {
+	for (let i = 0; i < rounds; i++) {
 		block = encrypt(block, key);
 	}
 	let r = salt;
@@ -226,7 +273,7 @@ function crypt(password, salt) {
 			c <<= 1;
 			c |= block[6 * i + j];
 		}
-		r += numToChar(c);
+		r += pb64.n2c(c);
 	}
 	return r;
 }
