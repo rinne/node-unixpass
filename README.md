@@ -2,16 +2,14 @@ In A Nutshell
 =============
 
 This is a native javascript implementation of Unix/Linux compatible
-password hashing. The currently implemented variants include MD5
-($1$), SHA256 ($5$), and SHA512 ($6$).
+password hashing. The currently implemented variants include
+legacy-DES, MD5 ($1$), SHA256 ($5$), and SHA512 ($6$).
 
 The ones missing are
-  - Legacy DES encryption for 8 byte US-ASCII passwords (13 character hash including 2 character salt)
   - Legacy extended DES encryption (_ + 24 bit rouns + 24 bit salt ...)
   - Blowfish hashing ($2$, $2a$, $2b$, $2x$, $2y$)
 
 Should some brave soul implement any or all of above, they will be accepted.
-
 
 Usage
 =====
@@ -29,6 +27,15 @@ up.mkpass('mypassword');
 up.check('mypassword', '$1$saltsalt$dfhjlwheucnsdicbnwuibnwicb');
 
 ```
+
+Caution!
+========
+
+Be aware that legacy-DES only cares about first 8 characters of the
+password. While no new passwords should be encrypted using that, it
+may be useful in validating some old stuff. Also, it is an interesting
+piece of history that deserves to be reimplemented also in js.
+
 
 Author
 ======

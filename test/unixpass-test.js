@@ -58,7 +58,37 @@ const test = function() {
 		  r: "$1$toolongs$EVlrXgIzSyVBiscgwJ6jL0" },
 		{ p: "a very much longer text to encrypt.  This one even stretches over morethan one line.",
 		  s: "$1$anotherlongsaltstring",
-		  r: "$1$anotherl$K6Vw1g4o5xCrk48TD5civ." }
+		  r: "$1$anotherl$K6Vw1g4o5xCrk48TD5civ." },
+		// Ad-hoc tests for legacy DES password encryption created
+		// with glibc and verified to match with various other
+		// implementations.
+		{ p: 'foobar',
+		  s: '..',
+		  r: '..Tgnr41TuFZA' },
+		{ p: 'foobar',
+		  s: 'Az',
+		  r: 'Az/bPFC5oIitA' },
+		{ p: 'FooBar',
+		  s: 'Az',
+		  r: 'AzOxUVFhcFncc' },
+		{ p: '01234567',
+		  s: 'zz',
+		  r: 'zznQBYYSwOYps' },
+		{ p: '0123456789',
+		  s: 'zz',
+		  r: 'zznQBYYSwOYps' },
+		{ p: '%/,;.~"!',
+		  s: 'zz',
+		  r: 'zzKc2XDgEi/Yo' },
+		{ p: '%/,;.~"!',
+		  s: 'h5',
+		  r: 'h5nMUGD6YY9i.' },
+		{ p: '$$$$',
+		  s: 'XX',
+		  r: 'XXvI/jEG6AEWk' },
+		{ p: 'Kukkuu?',
+		  s: 'tr',
+		  r: 'trthmtW0sP6Ik' },
 	];
 	var n = 0, ok = 0;
 
