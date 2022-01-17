@@ -4,6 +4,9 @@
 // encryption using DES. S-boxes and permutation tables are
 // snatched from the file /usr/src/libc/gen/crypt.c found
 // in the source code archive of Unix V7 dated 1978.
+// They are for the most part also publicly available in
+// "Federal Information Processing Standards Publication 46:
+// Data Encryption Standard", published on January 17, 1977.
 
 const IP = [ 58, 50, 42, 34, 26, 18, 10, 2,
 			 60, 52, 44, 36, 28, 20, 12, 4,
@@ -158,7 +161,7 @@ function encrypt(block,  key)
 	return ret;
 }
 
-function mkKey(pw, sa) {
+function mkKey(pw) {
 	let block = Buffer.alloc(64);
 	for (let i = 0; i < pw.length; i++) {
 		for (let j = 0; j < 7; j++) {
@@ -181,6 +184,11 @@ function mkKey(pw, sa) {
 		}
 	}
 	let e = Array.from(E);
+	return {ks: ks, e: e};
+}
+
+function setKeySalt(key, sa) {
+	let e = Array.from(E);
 	for (let i = 0; i < 2; i++) {
 		for (let j = 0; j < 6; j++) {
 			if ((sa[i] >> j) & 1) {
@@ -190,7 +198,7 @@ function mkKey(pw, sa) {
 			}
 		}
 	}
-	return {ks: ks, e: e};
+	return {ks: key.ks, e: e};
 }
 
 function crypt(password, salt) {
@@ -203,9 +211,10 @@ function crypt(password, salt) {
 	if (! salt.match(/^[./0-9A-Za-z]{2}/)) {
 		throw new RangeError('Malformed salt');
 	}
-	let key = mkKey(Buffer.from(password, 'utf8').slice(0, 8),
-					Buffer.from([ charToNum(salt.charAt(0)),
-								  charToNum(salt.charAt(1)) ]));
+	let key;
+	key = mkKey(Buffer.from(password, 'utf8').slice(0, 8))
+	key = setKeySalt(key, Buffer.from([ charToNum(salt.charAt(0)),
+										charToNum(salt.charAt(1)) ]));
 	let block = Buffer.alloc(64);
 	for (let i = 0; i < 25; i++) {
 		block = encrypt(block, key);

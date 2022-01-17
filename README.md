@@ -6,7 +6,7 @@ password hashing. The currently implemented variants include
 legacy-DES, MD5 ($1$), SHA256 ($5$), and SHA512 ($6$).
 
 The ones missing are
-  - Legacy extended DES encryption (_ + 24 bit rouns + 24 bit salt ...)
+  - Legacy extended DES encryption (_ + 24 bit rounds + 24 bit salt ...)
   - Blowfish hashing ($2$, $2a$, $2b$, $2x$, $2y$)
 
 Should some brave soul implement any or all of above, they will be accepted.
