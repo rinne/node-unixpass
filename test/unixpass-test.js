@@ -113,7 +113,28 @@ const test = function() {
 		  r: '_zZ9/Az.0Bp65KHBw6Ys' },
 		{ p: 'FooBar01234567890€',
 		  s: '_zZ9/Az.0',
-		  r: '_zZ9/Az.0qd4iljFxBa6' }
+		  r: '_zZ9/Az.0qd4iljFxBa6' },
+		// Following "rasmus" password tests have been picked
+		// up from PHP manual page for crypt
+		// (https://www.php.net/manual/en/function.crypt.php)
+		{ p: 'rasmuslerdorf',
+		  s: 'rl',
+		  r: 'rl.3StKT.4T8M' },
+		{ p: 'rasmuslerdorf',
+		  s: '_J9..rasm',
+		  r: '_J9..rasmBYk8r9AiWNc' },
+		{ p: 'rasmuslerdorf',
+		  s: '$1$rasmusle$',
+		  r: '$1$rasmusle$rISCgZzpwk3UhDidwXvin0' },
+//		{ p: 'rasmuslerdorf',
+//		  s: '$2a$07$usesomesillystringforsalt$',
+//		  r: '$2a$07$usesomesillystringfore2uDLvp1Ii2e./U9C8sBjqp8I90dH6hi' },
+		{ p: 'rasmuslerdorf',
+		  s: '$5$rounds=5000$usesomesillystringforsalt$',
+		  r: '$5$rounds=5000$usesomesillystri$KqJWpanXZHKq2BOB43TSaYhEWsQ1Lr5QNyPCDH/Tp.6' },
+		{ p: 'rasmuslerdorf',
+		  s: '$6$rounds=5000$usesomesillystringforsalt$',
+		  r: '$6$rounds=5000$usesomesillystri$D4IrlXatmP7rx3P3InaxBeoomnAihCKRVQP22JZ6EY47Wc6BkroIuUUBOov1i.S5KPgErtP/EN5mcO.ChWQW21' }
 	];
 	var n = 0, ok = 0, i;
 
