@@ -46,7 +46,7 @@ function rndStr(len, voc) {
 }
 
 const crypt = function(password, salt) {
-	var m, rounds;
+	var m;
 	if (! ((typeof(password) === 'string') && (typeof(salt) === 'string'))) {
 		return false;
 	}
@@ -69,10 +69,17 @@ const crypt = function(password, salt) {
 		// explicitly, the salt becomes "rounds=#" where # is the
 		// first digit of the number of rounds. This is already so
 		// brain damaged, that we'll just ignore it.
-		var alg = Number.parseInt(m[3]);
-		rounds = Math.max(1000, Math.min(999999999, (m[5] === undefined) ? ((alg == 1) ? 1000 : 5000) : Number.parseInt(m[5])));
-		salt = m[6];
-		return hashCrypt(password, salt, alg, rounds, (m[4] !== undefined));
+		let r;
+		try {
+			let alg = Number.parseInt(m[3]);
+			let rounds = Math.max(1000, Math.min(999999999, (m[5] === undefined) ? ((alg == 1) ? 1000 : 5000) : Number.parseInt(m[5])));
+			let salt = m[6];
+			r = hashCrypt(password, salt, alg, rounds, (m[4] !== undefined));
+		} catch (e) {
+			console.log(e);
+			r = false;
+		}
+		return r;
 	}
 	m = salt.match(/^(\$2([abxy]|)\$(\d\d)\$)([./0-9A-Za-z]{22})/);
 	if (m) {
