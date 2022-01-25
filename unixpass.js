@@ -1,8 +1,48 @@
 'use strict';
 
-const createHash = require('crypto').createHash;
+const crypto = require('crypto');
 const pb64 = require('./pb64.js');
 const desCrypt = require('./pwdes.js');
+const bcrypt = require('./bcrypt.js');
+
+const UNIXPASS_CRYPT_STD_DES = 1;
+const UNIXPASS_CRYPT_EXT_DES = 2;
+const UNIXPASS_CRYPT_MD5 = 3;
+const UNIXPASS_CRYPT_BLOWFISH = 4;
+const UNIXPASS_CRYPT_SHA256 = 5;
+const UNIXPASS_CRYPT_SHA512 = 6;
+
+const VOC_ALPHANUM = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+const VOC_PB64 = pb64.voc;
+
+function rndInt(min, max) {
+	if (! (Number.isSafeInteger(min) && Number.isSafeInteger(max))) {
+		throw new TypeError('Non integer limits');
+	}
+	if ((min > max) || (min < -0xffffffff) || (max > 0x100000000)) {
+		throw new RangeError('Unacceptable limits');
+	}
+	if (min == max) {
+		return min;
+	}
+	let	b = crypto.randomBytes(7);
+	let n = (b.readUIntLE(0, 6) + ((b.readUInt8(6) & 0x0f) * 0x1000000000000));
+	return (n % (max - min)) + min;
+}
+
+function rndStr(len, voc) {
+	var r, i;
+	if (! (Number.isSafeInteger(len) && (typeof(voc) === 'string'))) {
+		throw new TypeError('Bad length or vocabulary');
+	}
+	if (! (len >= 0) && (len <= 0x100000) && (voc.length > 0)) {
+		throw new RangeError('Unacceptable length or vocabulary');
+	}
+	for (i = 0, r = ''; i < len; i++) {
+		r += voc.charAt(rndInt(0, voc.length));
+	}
+	return r;
+}
 
 const hashCrypt = function(password, salt, alg, rounds, roundsExplicit) {
 	var hn, hl, i, a, b, c, ar, br, cr, p, s, h, rv;
@@ -30,8 +70,8 @@ const hashCrypt = function(password, salt, alg, rounds, roundsExplicit) {
 		break;
 	}
 	try {
-		a = createHash(hn);
-		b = createHash(hn);
+		a = crypto.createHash(hn);
+		b = crypto.createHash(hn);
 	} catch (e) {
 		a = undefined;
 	}
@@ -75,7 +115,7 @@ const hashCrypt = function(password, salt, alg, rounds, roundsExplicit) {
 	switch (alg) {
 	case 1:
 		for (i = 0; i < rounds; i++) {
-			a = createHash(hn);
+			a = crypto.createHash(hn);
 			if (i & 1) {
 				a.update(password);
 			} else {
@@ -98,7 +138,7 @@ const hashCrypt = function(password, salt, alg, rounds, roundsExplicit) {
 		break;
 	case 5:
 	case 6:
-		c = createHash(hn);
+		c = crypto.createHash(hn);
 		for (i = password.length; i > 0; i--) {
 			c.update(password);
 		}
@@ -112,7 +152,7 @@ const hashCrypt = function(password, salt, alg, rounds, roundsExplicit) {
 		if (p.length > password.length) {
 			p = p.slice(0, password.length);
 		}
-		c = createHash(hn);
+		c = crypto.createHash(hn);
 		for (i = 16 + ar[0]; i > 0; i--) {
 			c.update(salt);
 		}
@@ -127,7 +167,7 @@ const hashCrypt = function(password, salt, alg, rounds, roundsExplicit) {
 			s = s.slice(0, salt.length);
 		}
 		for (i = 0; i < rounds; i++) {
-			a = createHash(hn);
+			a = crypto.createHash(hn);
 			if (i & 1) {
 				a.update(p);
 			} else {
@@ -203,16 +243,6 @@ const hashCrypt = function(password, salt, alg, rounds, roundsExplicit) {
 	return rv;
 };
 
-const bfCrypt = function(password, salt, alg, cost) {
-	if (! ((typeof(password) === 'string') && (typeof(salt) === 'string') &&
-		   Number.isInteger(cost) && (cost > 0) && (cost < 100) &&
-		   ([ '2', '2a', '2b', '2x', '2y' ].indexOf(alg) >= 0))) {
-		return false;
-	}
-	// Not implemented. Sorry.
-	return false;
-}
-
 const crypt = function(password, salt) {
 	var m, rounds;
 	if (! ((typeof(password) === 'string') && (typeof(salt) === 'string'))) {
@@ -224,6 +254,7 @@ const crypt = function(password, salt) {
 		try {
 			r = desCrypt(password, salt);
 		} catch (e) {
+			console.log(e);
 			r = false;
 		}
 		return r;
@@ -241,23 +272,51 @@ const crypt = function(password, salt) {
 		salt = m[6];
 		return hashCrypt(password, salt, alg, rounds, (m[4] !== undefined));
 	}
-	m = salt.match(/^\$(2[abxy]?)\$([0-9]{2})\$([\.\/0-9A-Za-z]{22})([\.\/0-9A-Za-z]{31})?$/);
+	m = salt.match(/^(\$2([abxy]|)\$(\d\d)\$)([./0-9A-Za-z]{22})/);
 	if (m) {
-		var alg = m[1];
-		rounds = Number.parseInt(m[2]);
-		salt = m[3];
-		return bfCrypt(password, salt, alg, rounds)
+		return bcrypt(password, salt);
 	}
 	return false;
 };
 
-var mkpass = function(password) {
-	const sv = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-	var i, salt = ('$6$rounds=' + (5500 + Math.trunc((Math.random() * 500))).toFixed(0) + '$');
-	for (i = 0; i < 16; i++) {
-		salt += sv.substr(Math.trunc((Math.random() * sv.length)), 1);
+var mksalt = function(type) {
+	var r, n, b;
+	switch (type) {
+	case UNIXPASS_CRYPT_STD_DES:
+		r = rndStr(2, VOC_PB64);
+		break;
+	case UNIXPASS_CRYPT_EXT_DES:
+		n = rndInt(1024, 1280) | 1;
+		r = ('_' +
+			 pb64.n2c(n & 0x3f) + pb64.n2c((n >> 6) & 0x3f) +
+			 pb64.n2c((n >> 12) & 0x3f) + pb64.n2c((n >> 18) & 0x3f) +
+			 rndStr(4, VOC_PB64));
+		break;
+	case UNIXPASS_CRYPT_MD5:
+		r = '$1$' + rndStr(8, VOC_ALPHANUM) + '$';
+		break;
+	case UNIXPASS_CRYPT_BLOWFISH:
+		r = '$2a$11$' + rndStr(21, VOC_ALPHANUM) + 'z';
+		break;
+	case UNIXPASS_CRYPT_SHA256:
+		r = '$5$rounds=' + rndInt(5000, 6000).toString() + '$' + rndStr(16, VOC_ALPHANUM) + '$';
+		break;
+	case UNIXPASS_CRYPT_SHA512:
+		r = '$6$rounds=' + rndInt(5000, 6000).toString() + '$' + rndStr(16, VOC_ALPHANUM) + '$';
+		break;
+	default:
+		throw new RangeError('Unsupported password type');
 	}
-	return crypt(password, salt);
+	return r;
+}
+
+var mkpass = function(password, type) {
+	if (! type) {
+		type = UNIXPASS_CRYPT_SHA512;
+	}
+	var salt = mksalt(type);
+	var r = crypt(password, salt);
+	return r;
 };
 
 var check = function(password, hash) {
@@ -265,11 +324,17 @@ var check = function(password, hash) {
 		return false;
 	}
 	var hash2 = crypt(password, hash);
-	return hash2 === hash;
+	return hash2 && hash2.length && (hash2 === hash);
 }
 
 module.exports = {
 	crypt: crypt,
 	mkpass: mkpass,
-	check: check
+	check: check,
+	UNIXPASS_CRYPT_STD_DES: UNIXPASS_CRYPT_STD_DES,
+	UNIXPASS_CRYPT_EXT_DES: UNIXPASS_CRYPT_EXT_DES,
+	UNIXPASS_CRYPT_MD5: UNIXPASS_CRYPT_MD5,
+	UNIXPASS_CRYPT_BLOWFISH: UNIXPASS_CRYPT_BLOWFISH,
+	UNIXPASS_CRYPT_SHA256: UNIXPASS_CRYPT_SHA256,
+	UNIXPASS_CRYPT_SHA512: UNIXPASS_CRYPT_SHA512
 };

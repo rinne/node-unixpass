@@ -126,15 +126,24 @@ const test = function() {
 		{ p: 'rasmuslerdorf',
 		  s: '$1$rasmusle$',
 		  r: '$1$rasmusle$rISCgZzpwk3UhDidwXvin0' },
-//		{ p: 'rasmuslerdorf',
-//		  s: '$2a$07$usesomesillystringforsalt$',
-//		  r: '$2a$07$usesomesillystringfore2uDLvp1Ii2e./U9C8sBjqp8I90dH6hi' },
+		{ p: 'rasmuslerdorf',
+		  s: '$2a$07$usesomesillystringforsalt$',
+		  r: '$2a$07$usesomesillystringfore2uDLvp1Ii2e./U9C8sBjqp8I90dH6hi' },
 		{ p: 'rasmuslerdorf',
 		  s: '$5$rounds=5000$usesomesillystringforsalt$',
 		  r: '$5$rounds=5000$usesomesillystri$KqJWpanXZHKq2BOB43TSaYhEWsQ1Lr5QNyPCDH/Tp.6' },
 		{ p: 'rasmuslerdorf',
 		  s: '$6$rounds=5000$usesomesillystringforsalt$',
-		  r: '$6$rounds=5000$usesomesillystri$D4IrlXatmP7rx3P3InaxBeoomnAihCKRVQP22JZ6EY47Wc6BkroIuUUBOov1i.S5KPgErtP/EN5mcO.ChWQW21' }
+		  r: '$6$rounds=5000$usesomesillystri$D4IrlXatmP7rx3P3InaxBeoomnAihCKRVQP22JZ6EY47Wc6BkroIuUUBOov1i.S5KPgErtP/EN5mcO.ChWQW21' },
+		{ p: './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFG',
+		  s: '$2a$12$0123456789abcdefghijke',
+		  r: '$2a$12$0123456789abcdefghijke36bz62ZbAOKHwa0aLHwyCYl3o0lkv6q' },
+		{ p: './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGH',
+		  s: '$2a$12$0123456789abcdefghijke',
+		  r: '$2a$12$0123456789abcdefghijkeT1gjV4eikEehFL8/ZioAfE40W/Tzs.2' },
+		{ p: './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHI',
+		  s: '$2a$12$0123456789abcdefghijke',
+		  r: '$2a$12$0123456789abcdefghijkeT1gjV4eikEehFL8/ZioAfE40W/Tzs.2' }
 	];
 	var n = 0, ok = 0, i;
 

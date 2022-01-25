@@ -2,13 +2,16 @@
 
 const pb64 = require('./pb64.js');
 
-// This is an implementation of the original Unix password
-// encryption using DES. S-boxes and permutation tables are
-// snatched from the file /usr/src/libc/gen/crypt.c found
-// in the source code archive of Unix V7 dated 1978.
-// They are for the most part also publicly available in
-// "Federal Information Processing Standards Publication 46:
-// Data Encryption Standard", published on January 17, 1977.
+// This is an implementation of the Unix password
+// encryption scheme using DES.
+
+// S-boxes and permutation tables were snatched 
+// from the file /usr/src/libc/gen/crypt.c found in
+// the source code archive of Unix V7 dated 1978.
+// They are for the most part also publicly available
+// in "Federal Information Processing Standards
+// Publication 46: Data Encryption Standard",
+// published on January 17, 1977.
 
 const IP = [ 58, 50, 42, 34, 26, 18, 10, 2,
 			 60, 52, 44, 36, 28, 20, 12, 4,
@@ -210,7 +213,7 @@ function bitBufToByteBuf(b) {
 }
 
 function crypt(password, salt) {
-	var sb, rounds, ext = false;
+	var sb, pb, kb, rounds, key, block, r;
 	if (typeof(password) !== 'string') {
 		throw new TypeError('Password not a string');
 	}
@@ -218,12 +221,11 @@ function crypt(password, salt) {
 		throw new TypeError('Salt not a string');
 	}
 	if (salt.match(/^[./0-9A-Za-z]{2}/)) {
-		ext = false;
 		rounds = 25;
 		sb = Buffer.from([ pb64.c2n(salt.charAt(0)),
 						   pb64.c2n(salt.charAt(1)) ]);
+		pb = Buffer.from(password, 'utf8').slice(0, 8);
 	} else if (salt.match(/^_[./0-9A-Za-z]{8}/)) {
-		ext = true;
 		rounds = ((pb64.c2n(salt.charAt(1))) |
 				  (pb64.c2n(salt.charAt(2)) << 6) |
 				  (pb64.c2n(salt.charAt(3)) << 12) |
@@ -232,41 +234,34 @@ function crypt(password, salt) {
 						   pb64.c2n(salt.charAt(6)),
 						   pb64.c2n(salt.charAt(7)),
 						   pb64.c2n(salt.charAt(8)) ]);
+		pb = Buffer.from(password, 'utf8');
 	} else {
 		throw new RangeError('Malformed salt');
 	}
-	let key;
-	let pb = (ext ?
-			  Buffer.from(password, 'utf8') :
-			  Buffer.from(password, 'utf8').slice(0, 8));
 	for (let i = 0; i < pb.length; i++) {
 		pb[i] <<= 1;
 	}
 	if (pb.length % 8) {
 		pb = Buffer.concat([ pb, Buffer.alloc(8 - (pb.length % 8)) ]);
 	}
-	if (ext) {
-		let kb = Buffer.alloc(8);
-		for (let i = 0; i < pb.length; i += 8) {
-			if (i > 0) {
-				kb = byteBufToBitBuf(kb);
-				kb = encrypt(kb, key);
-				kb = bitBufToByteBuf(kb)
-			}
-			for (let j = 0; j < 8; j++) {
-				kb[j] ^= pb[i + j];
-			}
-			key = mkKey(kb);
+	kb = Buffer.alloc(8);
+	for (let i = 0; i < pb.length; i += 8) {
+		if (i > 0) {
+			kb = byteBufToBitBuf(kb);
+			kb = encrypt(kb, key);
+			kb = bitBufToByteBuf(kb)
 		}
-	} else {
-		key = mkKey(pb);
+		for (let j = 0; j < 8; j++) {
+			kb[j] ^= pb[i + j];
+		}
+		key = mkKey(kb);
 	}
 	key = setKeySalt(key, sb);
-	let block = Buffer.alloc(64);
+	block = Buffer.alloc(64);
 	for (let i = 0; i < rounds; i++) {
 		block = encrypt(block, key);
 	}
-	let r = salt;
+	r = salt;
 	for (let i = 0; i < 11; i++){
 		let c = 0;
 		for(let j = 0; j < 6; j++) {

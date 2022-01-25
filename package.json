@@ -1,36 +1,39 @@
 {
-    "name": "unixpass",
-    "version": "2.1.1",
-    "description": "Native implementation of Unix compatible DES/MD5/SHA256/SHA512 password hashing.",
-    "main": "unixpass.js",
-    "scripts": {
-        "test": "node ./test/unixpass-test.js"
-    },
-    "engines": {
-        "node": ">=4.0.0"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/rinne/node-unixpass.git"
-    },
-    "keywords": [
-        "unix",
-        "linux",
-        "password",
-        "security",
+	"name": "unixpass",
+	"version": "3.0.0",
+	"description": "Native implementation of Unix compatible DES/MD5/SHA256/SHA512 password hashing.",
+	"main": "unixpass.js",
+	"scripts": {
+		"test": "node ./test/unixpass-test.js"
+	},
+	"engines": {
+		"node": ">=4.0.0"
+	},
+	"dependencies": {
+		"blowfish-js": "^1.0.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/rinne/node-unixpass.git"
+	},
+	"keywords": [
+		"unix",
+		"linux",
+		"password",
+		"security",
 		"MD5",
 		"SHA256",
 		"SHA512",
 		"DES"
-    ],
-    "author": {
-        "name": "Timo J. Rinne",
-        "email": "tri@iki.fi",
-        "url": "https://github.com/rinne/"
-    },
-    "license": "GPL-2.0",
-    "bugs": {
-        "url": "https://github.com/rinne/node-unixpass/issues"
-    },
-    "homepage": "https://github.com/rinne/node-unixpass#readme"
+	],
+	"author": {
+		"name": "Timo J. Rinne",
+		"email": "tri@iki.fi",
+		"url": "https://github.com/rinne/"
+	},
+	"license": "GPL-2.0",
+	"bugs": {
+		"url": "https://github.com/rinne/node-unixpass/issues"
+	},
+	"homepage": "https://github.com/rinne/node-unixpass#readme"
 }

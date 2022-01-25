@@ -4,12 +4,9 @@ In A Nutshell
 This is a native javascript implementation of Unix/Linux compatible
 password hashing. The currently implemented variants include
 legacy-DES (13 characters [./0-9A-Za-z]), extended-DES (underscore
-followed by 19 characters) MD5 ($1$), SHA256 ($5$), and SHA512 ($6$).
+followed by 19 characters) MD5 ($1$), SHA256 ($5$), SHA512 ($6$), and
+BCrypt ($2a$).
 
-The ones missing are
-  - Blowfish hashing ($2$, $2a$, $2b$, $2x$, $2y$)
-
-Should some brave soul implement any or all of above, they will be accepted.
 
 Usage
 =====
@@ -35,6 +32,17 @@ Be aware that legacy-DES only cares about first 8 characters of the
 password. While no new passwords should be encrypted using that, it
 may be useful in validating some old stuff. Also, it is an interesting
 piece of history that deserves to be reimplemented also in js.
+
+
+BCrypt
+======
+
+I don't like BCrypt and didn't even think that I'd ever implement it,
+but eventually did it anyways. The code does not implement any
+backward compatibilities for earlied bugs. Instead, it blindly accepts
+any currently known variant specifier, but performs the actual hashing
+identically. The maximum meaningful length of the UTF-8 encoded
+password in BCrypt is 72 bytes. Longer passwords are truncated.
 
 
 Author
