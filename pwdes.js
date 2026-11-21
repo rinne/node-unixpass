@@ -261,7 +261,9 @@ function crypt(password, salt) {
 	for (let i = 0; i < rounds; i++) {
 		block = encrypt(block, key);
 	}
-	r = salt;
+	// Only the salt part is copied to the result, so that a complete
+	// hash can be given as the salt, as check() does.
+	r = salt.slice(0, (salt.charAt(0) === '_') ? 9 : 2);
 	for (let i = 0; i < 11; i++){
 		let c = 0;
 		for(let j = 0; j < 6; j++) {

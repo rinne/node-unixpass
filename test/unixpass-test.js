@@ -143,7 +143,23 @@ const test = function() {
 		  r: '$2a$12$0123456789abcdefghijkeT1gjV4eikEehFL8/ZioAfE40W/Tzs.2' },
 		{ p: './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyzABCDEFGHI',
 		  s: '$2a$12$0123456789abcdefghijke',
-		  r: '$2a$12$0123456789abcdefghijkeT1gjV4eikEehFL8/ZioAfE40W/Tzs.2' }
+		  r: '$2a$12$0123456789abcdefghijkeT1gjV4eikEehFL8/ZioAfE40W/Tzs.2' },
+		// Non-ASCII passwords, from "openssl passwd" and glibc crypt().
+		{ p: 'pässwörd', s: '$1$saltsalt', r: '$1$saltsalt$VReRfkQ8Hs1aayf/oxMkG/' },
+		{ p: '日本語', s: '$1$saltsalt', r: '$1$saltsalt$IuIDcC86PJIUYgSuNvWG./' },
+		{ p: 'a😀b', s: '$1$saltsalt', r: '$1$saltsalt$bUyoOJTdgA7j9UIQsLdlm/' },
+		{ p: 'pässwörd', s: '$5$saltsalt', r: '$5$saltsalt$JUyX9J5pA1EE4ZvGcIA.vpwPCUQ8GlJbo51r7M84au8' },
+		{ p: '日本語', s: '$5$saltsalt', r: '$5$saltsalt$crFhVdcRjCJHy1asWqP0FILJmV3ebNidLqcriGPDH./' },
+		{ p: 'a😀b', s: '$5$saltsalt', r: '$5$saltsalt$7s5LV0lvlemOSEj.wrjZylkz1XKzINnmwGVQZK3N7zD' },
+		{ p: 'pässwörd', s: '$6$saltsalt', r: '$6$saltsalt$TQjRhpJdqmLx0U8it3EsUajwkmOMMvw5vhUFc7mohzFFoj/QHrfYUHU1oSkwyCEoTUCDOiAOW135nel3bqtKe.' },
+		{ p: '日本語', s: '$6$saltsalt', r: '$6$saltsalt$SdPGCVnnN69QbcUtIE7AR9/iUY56e1hJfK9oDtQBd1mZoPqXVznR81E6Ygs.4HJmfsiRxBRhSef2G7lO5OOjQ.' },
+		{ p: 'a😀b', s: '$6$saltsalt', r: '$6$saltsalt$r1ICbs9PAjGAgh9GghNCg38JVfrCWsop95Xg/hvHhFPh.kBcinKQCR.Fjntaa/0/4bIjgoOPv/sk9oH0PZH9R0' },
+		{ p: 'Ünïcödé-🔑-longer-than-sixty-four-bytes-äöüäöüäöüäöüäöüäöüäöüäöü',
+		  s: '$5$rounds=1234$saltsalt',
+		  r: '$5$rounds=1234$saltsalt$7hqj0CssKlwONSV4V8L1.h8vZAI9V.R3A0yr34G72F5' },
+		{ p: 'Ünïcödé-🔑-longer-than-sixty-four-bytes-äöüäöüäöüäöüäöüäöüäöüäöü',
+		  s: '$6$rounds=1234$saltsalt',
+		  r: '$6$rounds=1234$saltsalt$rEA0iBQk0IN.Kfl3Pe1FKLORISYQOJ..vtoASyLzp.oonGEsymaRmCaxiODLPUdD/S/FkoaSe8T3vSbtFaSQy1' }
 	];
 	var n = 0, ok = 0, i;
 
@@ -157,6 +173,28 @@ const test = function() {
 			console.log('#' + n.toString() + ' FAIL!');
 			console.log("  crypt(\"" + t.p + "\", \"" + t.s + "\") -> \"" + r + "\"");
 			console.log("  expected \"" + t.r + "\"");
+		}
+	});
+	t.forEach(function(t) {
+		n++;
+		if ((up.check(t.p, t.r) === true) && (! up.check('x' + t.p, t.r))) {
+			console.log('#' + n.toString() + ' OK');
+			ok++;
+		} else {
+			console.log('#' + n.toString() + ' FAIL!');
+			console.log("  check(\"" + t.p + "\", \"" + t.r + "\") failed");
+		}
+	});
+	[ 'UNIXPASS_CRYPT_STD_DES', 'UNIXPASS_CRYPT_EXT_DES', 'UNIXPASS_CRYPT_MD5',
+	  'UNIXPASS_CRYPT_BCRYPT', 'UNIXPASS_CRYPT_SHA256', 'UNIXPASS_CRYPT_SHA512' ].forEach(function(type) {
+		var h = up.mkpass('secret', up[type]);
+		n++;
+		if (h && (up.check('secret', h) === true) && (! up.check('Secret', h))) {
+			console.log('#' + n.toString() + ' OK');
+			ok++;
+		} else {
+			console.log('#' + n.toString() + ' FAIL!');
+			console.log("  mkpass(\"secret\", " + type + ") -> \"" + h + "\" does not check");
 		}
 	});
 	if (ok != n) {

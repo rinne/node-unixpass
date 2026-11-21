@@ -28,6 +28,11 @@ const hashCrypt = function(password, salt, alg, rounds, roundsExplicit) {
 		}
 		break;
 	}
+	// The algorithms are defined on bytes, so every length below must
+	// be the length of the UTF-8 encoding, not the string length.
+	password = Buffer.from(password, 'utf8');
+	var saltStr = salt;
+	salt = Buffer.from(salt, 'utf8');
 	try {
 		a = crypto.createHash(hn);
 		b = crypto.createHash(hn);
@@ -59,7 +64,7 @@ const hashCrypt = function(password, salt, alg, rounds, roundsExplicit) {
 			if (i & 1) {
 				a.update("\0");
 			} else {
-				a.update((password.length > 0) ? password.substr(0, 1) : "\0");
+				a.update((password.length > 0) ? password.slice(0, 1) : "\0");
 			}
 		} else {
 			if (i & 1) {
@@ -198,7 +203,7 @@ const hashCrypt = function(password, salt, alg, rounds, roundsExplicit) {
 			 pb64.encb(0, 0, ar[63], 2));
 		break;
 	}
-	rv = '$' + alg.toString() + '$' + (roundsExplicit ? ('rounds=' + rounds.toString() + '$') : '') + salt + '$' + h;
+	rv = '$' + alg.toString() + '$' + (roundsExplicit ? ('rounds=' + rounds.toString() + '$') : '') + saltStr + '$' + h;
 	return rv;
 };
 
