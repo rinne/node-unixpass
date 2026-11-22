@@ -56,7 +56,6 @@ const crypt = function(password, salt) {
 		try {
 			r = desCrypt(password, salt);
 		} catch (e) {
-			console.log(e);
 			r = false;
 		}
 		return r;
@@ -76,7 +75,6 @@ const crypt = function(password, salt) {
 			let salt = m[6];
 			r = hashCrypt(password, salt, alg, rounds, (m[4] !== undefined));
 		} catch (e) {
-			console.log(e);
 			r = false;
 		}
 		return r;
@@ -87,7 +85,6 @@ const crypt = function(password, salt) {
 		try {
 			r = bcrypt(password, salt);
 		} catch (e) {
-			console.log(e);
 			r = false;
 		}
 		return r;
@@ -140,7 +137,15 @@ var check = function(password, hash) {
 		return false;
 	}
 	var hash2 = crypt(password, hash);
-	return hash2 && hash2.length && (hash2 === hash);
+	if (! (hash2 && (hash2.length === hash.length))) {
+		return false;
+	}
+	// Compare in constant time.
+	var d = 0;
+	for (var i = 0; i < hash.length; i++) {
+		d |= hash.charCodeAt(i) ^ hash2.charCodeAt(i);
+	}
+	return d === 0;
 }
 
 module.exports = {

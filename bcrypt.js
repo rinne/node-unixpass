@@ -49,7 +49,6 @@ function bcrypt(password, salt) {
 		cdata = cdata.slice(0, 23);
 		r = salthead + bc64.enc(saltbuf) + bc64.enc(cdata);
 	} catch (e) {
-		console.log(e);
 		r = undefined;
 		throw new Error('Password hash error');
 	}

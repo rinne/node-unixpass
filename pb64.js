@@ -26,7 +26,7 @@ const encb = function(voc, b0, b1, b2, rl) {
 function dec(voc, s) {
 	var a = [];
 	if (typeof(s) !== 'string') {
-		throw new TYpeError('Invalid bc64 input');
+		throw new TypeError('Invalid bc64 input');
 	}
 	for (let i = 0; i < s.length; i += 4) {
 		switch (Math.min(4, s.length - i)) {
@@ -98,7 +98,7 @@ function dec(voc, s) {
 function enc(voc, b) {
 	var r = '';
 	if (! Buffer.isBuffer(b)) {
-		throw new TYpeError('Invalid input');
+		throw new TypeError('Invalid input');
 	}
 	for (let i = 0; i < b.length; i += 3) {
 		switch (Math.min(3, b.length - i)) {
