@@ -159,7 +159,18 @@ const test = function() {
 		  r: '$5$rounds=1234$saltsalt$7hqj0CssKlwONSV4V8L1.h8vZAI9V.R3A0yr34G72F5' },
 		{ p: 'Ünïcödé-🔑-longer-than-sixty-four-bytes-äöüäöüäöüäöüäöüäöüäöüäöü',
 		  s: '$6$rounds=1234$saltsalt',
-		  r: '$6$rounds=1234$saltsalt$rEA0iBQk0IN.Kfl3Pe1FKLORISYQOJ..vtoASyLzp.oonGEsymaRmCaxiODLPUdD/S/FkoaSe8T3vSbtFaSQy1' }
+		  r: '$6$rounds=1234$saltsalt$rEA0iBQk0IN.Kfl3Pe1FKLORISYQOJ..vtoASyLzp.oonGEsymaRmCaxiODLPUdD/S/FkoaSe8T3vSbtFaSQy1' },
+		// bcrypt uses at most 72 bytes of UTF-8, also when the cut
+		// falls inside a character. From Python's bcrypt module.
+		{ p: 'a'.repeat(71) + '\u{1F600}',
+		  s: '$2b$04$abcdefghijklmnopqrstuu',
+		  r: '$2b$04$abcdefghijklmnopqrstuu3ArCVnvgaGqIxfTmaEp9qWL9ayKYFzq' },
+		{ p: 'a'.repeat(70) + '\u00e4\u00e4',
+		  s: '$2b$04$abcdefghijklmnopqrstuu',
+		  r: '$2b$04$abcdefghijklmnopqrstuuo/8J4IfUpzsKO/5vLBt9LK9IFsypcd6' },
+		{ p: '\u00e4'.repeat(40),
+		  s: '$2b$04$abcdefghijklmnopqrstuu',
+		  r: '$2b$04$abcdefghijklmnopqrstuuAg/vhymG.zjfOvPuw7BgQPjbFV1.SQW' }
 	];
 	var n = 0, ok = 0, i;
 
@@ -183,6 +194,18 @@ const test = function() {
 		} else {
 			console.log('#' + n.toString() + ' FAIL!');
 			console.log("  check(\"" + t.p + "\", \"" + t.r + "\") failed");
+		}
+	});
+	// An extended DES count of zero would give the same hash for
+	// every password, so such salts and hashes are refused.
+	[ '_....abcd', '_....abcd...........' ].forEach(function(s) {
+		n++;
+		if ((up.crypt('secret', s) === false) && (up.check('anything', s) === false)) {
+			console.log('#' + n.toString() + ' OK');
+			ok++;
+		} else {
+			console.log('#' + n.toString() + ' FAIL!');
+			console.log("  zero count salt \"" + s + "\" accepted");
 		}
 	});
 	[ 'UNIXPASS_CRYPT_STD_DES', 'UNIXPASS_CRYPT_EXT_DES', 'UNIXPASS_CRYPT_MD5',

@@ -1,4 +1,4 @@
-'use stict';
+'use strict';
 
 const blf = require('blowfish-js');
 const bc64 = require('./pb64.js').bc;
@@ -26,7 +26,9 @@ function bcrypt(password, salt) {
 			throw new RangeError('Invalid cost');
 		}
 		let rounds = 1 << cost;
-		let passbuf = Buffer.from((password + '\0').slice(0, 72), 'utf8');
+		// As in OpenBSD: the UTF-8 bytes of the password and the
+		// terminating NUL, at most 72 bytes.
+		let passbuf = Buffer.concat([ Buffer.from(password, 'utf8'), Buffer.alloc(1) ]).slice(0, 72);
 		let salthead = m[1];
 		let saltbuf = bc64.dec(m[4]);
 		let cipher = blf.allocState();

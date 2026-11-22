@@ -234,6 +234,11 @@ function crypt(password, salt) {
 						   pb64.c2n(salt.charAt(6)),
 						   pb64.c2n(salt.charAt(7)),
 						   pb64.c2n(salt.charAt(8)) ]);
+		if (rounds === 0) {
+			// A count of zero would encrypt nothing, giving the same
+			// hash for every password.
+			throw new RangeError('Invalid iteration count');
+		}
 		pb = Buffer.from(password, 'utf8');
 	} else {
 		throw new RangeError('Malformed salt');
