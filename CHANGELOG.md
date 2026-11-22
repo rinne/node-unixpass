@@ -1,6 +1,26 @@
 Changelog
 =========
 
+4.0.1
+-----
+
+### Fixed
+
+- An extended DES salt or hash with an iteration count of zero
+  (`_....`) is refused. Such a hash is the same for every password,
+  so check() accepted any password for it.
+- bcrypt truncated the password to 72 characters before UTF-8
+  encoding it instead of to 72 bytes after. The result differed from
+  other implementations when the cut fell inside a character outside
+  the Basic Multilingual Plane. Other passwords hash as before.
+- check() compares the hash in constant time.
+- crypt() and check() no longer print errors with console.log.
+- Typos: `'use stict'` in bcrypt.js, `TYpeError` in pb64.js.
+
+### Other
+
+- The tests are no longer included in the published package.
+
 4.0.0
 -----
 

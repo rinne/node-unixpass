@@ -28,10 +28,17 @@ up.check('mypassword', '$1$saltsalt$dfhjlwheucnsdicbnwuibnwicb');
 Caution!
 ========
 
-Be aware that legacy-DES only cares about first 8 characters of the
-password. While no new passwords should be encrypted using that, it
-may be useful in validating some old stuff. Also, it is an interesting
-piece of history that deserves to be reimplemented also in js.
+Be aware that legacy-DES only cares about first 8 bytes of the UTF-8
+encoded password (8 characters for plain ASCII). While no new
+passwords should be encrypted using that, it may be useful in
+validating some old stuff. Also, it is an interesting piece of
+history that deserves to be reimplemented also in js.
+
+An extended-DES salt with an iteration count of zero (`_....`) is
+refused: crypt() returns false and check() never matches such a hash,
+because it would be the same for every password. crypt() returns
+false for any salt it can't use, and check() compares the hash in
+constant time.
 
 
 BCrypt
